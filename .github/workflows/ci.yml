@@ -1,0 +1,11 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  lint-and-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Basic tree check
+        run: test -f roles/linux_upgrade/tasks/main.yml

@@ -1,0 +1,3 @@
+- name: Run rollback
+  include_tasks: ../operations/rollback.yml
+  tags: [rollback]

@@ -1,0 +1,1 @@
+name: ci-extended\non:\n  push:\n  pull_request:\njobs:\n  basic:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: test -f roles/linux_upgrade/tasks/main.yml\n

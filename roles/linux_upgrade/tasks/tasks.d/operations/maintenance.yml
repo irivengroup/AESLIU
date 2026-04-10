@@ -1,0 +1,15 @@
+- name: Enter maintenance mode
+  shell: "{{ item }}"
+  loop: "{{ linux_upgrade_maintenance_mode_pre_commands }}"
+  changed_when: true
+  when:
+    - linux_upgrade_maintenance_mode_enabled | bool
+    - linux_upgrade_maintenance_phase == 'pre'
+
+- name: Exit maintenance mode
+  shell: "{{ item }}"
+  loop: "{{ linux_upgrade_maintenance_mode_post_commands }}"
+  changed_when: true
+  when:
+    - linux_upgrade_maintenance_mode_enabled | bool
+    - linux_upgrade_maintenance_phase == 'post'

@@ -1,0 +1,1 @@
+dependency:\n  name: galaxy\n\ndriver:\n  name: delegated\n\nplatforms:\n  - name: sles-instance\n\nprovisioner:\n  name: ansible\n  playbooks:\n    converge: converge.yml\n
