@@ -1,2 +1,2 @@
 # AESLIU
-Ansible Enterprise Role for Linux In Place Upgrade
+Ansible Enterprise Solution for Linux In Place Upgrade
