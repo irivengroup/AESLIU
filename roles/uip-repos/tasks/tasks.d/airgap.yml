@@ -1,45 +1,52 @@
 ---
 - name: Assert airgap target repository exists
   ansible.builtin.stat:
-    path: "{{ uip_repo_def.dst_mount }}"
+    path: '{{ uip_repo_def.dst_mount }}'
   register: uip_airgap
   tags:
-    - uip_repos_airgap
-    - uip_preupgrade
-
+  - uip_repos_airgap
+  - uip_preupgrade
+  - uip_repos
 - name: Fail if airgap target repository is missing
   ansible.builtin.fail:
-    msg: "Airgap target repo {{ uip_repo_def.dst_mount }} is missing."
+    msg: Airgap target repo {{ uip_repo_def.dst_mount }} is missing.
   when: not uip_airgap.stat.exists
   tags:
-    - uip_repos_airgap
-    - uip_preupgrade
-
+  - uip_repos_airgap
+  - uip_preupgrade
+  - uip_repos
 - name: Configure airgap RPM target repository
   ansible.builtin.copy:
-    dest: "{{ uip_repo_def.dst_repo_file }}"
-    mode: "0644"
-    content: |
-      [uip-{{ uip_dst_name }}]
+    dest: '{{ uip_repo_def.dst_repo_file }}'
+    mode: '0644'
+    content: '[uip-{{ uip_dst_name }}]
+
       name=UIP airgap {{ uip_dst_name }}
+
       baseurl={{ uip_repo_def.dst_url }}
+
       enabled=1
+
       gpgcheck={{ 1 if uip_repo_gpg else 0 }}
+
+      '
   when: uip_pkg_mgr in ['yum', 'dnf', 'zypper']
   tags:
-    - uip_repos_airgap
-    - uip_preupgrade
-
+  - uip_repos_airgap
+  - uip_preupgrade
+  - uip_repos
 - name: Configure airgap APT target repository
   ansible.builtin.copy:
-    dest: "{{ uip_repo_def.dst_list_file }}"
-    mode: "0644"
-    content: |
-      deb [trusted={{ uip_apt_trusted }}] {{ uip_repo_def.dst_url }} {{ uip_repo_def.dst_suite }} {{ uip_repo_components }}
+    dest: '{{ uip_repo_def.dst_list_file }}'
+    mode: '0644'
+    content: 'deb [trusted={{ uip_apt_trusted }}] {{ uip_repo_def.dst_url }} {{ uip_repo_def.dst_suite }} {{ uip_repo_components }}
+
+      '
   vars:
-    uip_apt_trusted: "{{ 'no' if uip_repo_gpg else 'yes' }}"
-    uip_repo_components: "{{ uip_repo_def.components | default(['main']) | join(' ') }}"
+    uip_apt_trusted: '{{ ''no'' if uip_repo_gpg else ''yes'' }}'
+    uip_repo_components: '{{ uip_repo_def.components | default([''main'']) | join('' '') }}'
   when: uip_pkg_mgr == "apt"
   tags:
-    - uip_repos_airgap
-    - uip_preupgrade
+  - uip_repos_airgap
+  - uip_preupgrade
+  - uip_repos

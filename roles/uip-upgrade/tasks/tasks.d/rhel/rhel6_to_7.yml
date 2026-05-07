@@ -1,8 +1,10 @@
 ---
 - name: Run RHEL 6 to 7 upgrade tool
-  ansible.builtin.command: "{{ uip_upg_tool }}"
+  ansible.builtin.command: '{{ uip_upg_tool }}'
   register: uip_rhel6_upgrade
   changed_when: true
   tags:
-    - uip_upgrade
-    - uip_upgrade_rhel
+  - uip_upgrade
+  - uip_upgrade_rhel
+  - uip_postupgrade
+  - uip_rhel
