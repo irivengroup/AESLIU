@@ -30,8 +30,7 @@
           | selectattr('mount', 'equalto', item.path)
           | list
           | first
-        )
-        | default({})
+        ) | default({})
       }}
     uip_pre_fs_free_mb: "{{ (uip_pre_fs_mount.size_available | default(0) | int) // 1024 // 1024 }}"
     uip_pre_fs_item:
@@ -56,35 +55,13 @@
     - uip_precheck_fs
     - uip_preupgrade
 
-- name: Persist critical filesystem verification report as YAML
+- name: Persist critical filesystem verification report
   ansible.builtin.copy:
     dest: "{{ uip_report_dir }}/precheck-filesystems.yml"
     owner: root
     group: root
     mode: "0640"
     content: "{{ uip_pre_fs_report | to_nice_yaml }}"
-  tags:
-    - uip_precheck
-    - uip_precheck_fs
-    - uip_preupgrade
-
-- name: Persist critical filesystem verification report in UIP state
-  ansible.builtin.copy:
-    dest: "{{ uip_state_file }}"
-    owner: root
-    group: root
-    mode: "0640"
-    content: |
-      host: "{{ inventory_hostname }}"
-      os: "{{ uip_os }}"
-      src_ver: "{{ uip_src_ver }}"
-      dst_ver: "{{ uip_dst_ver }}"
-      path: "{{ uip_path_key }}"
-      repo_mgr: "{{ uip_repo_mgr }}"
-      state: "precheck_fs_collected"
-      fs_report:
-      {{ uip_pre_fs_report | to_nice_yaml(indent=2) | indent(2, true) }}
-      updated_at: "{{ ansible_date_time.iso8601 }}"
   tags:
     - uip_precheck
     - uip_precheck_fs

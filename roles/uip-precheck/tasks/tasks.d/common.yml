@@ -1,12 +1,9 @@
 ---
-- name: Check root free space
-  ansible.builtin.assert:
-    that:
-      - (ansible_mounts | selectattr('mount', 'equalto', '/') | first).size_available // 1024 // 1024 >= uip_pre_min_root_mb
-    fail_msg: Not enough free space on /
+- name: Include critical filesystem verification tasks
+  ansible.builtin.import_tasks: fs.yml
   tags:
-    - uip_precheck_sys
     - uip_precheck
+    - uip_precheck_fs
     - uip_preupgrade
 - name: Check default route
   ansible.builtin.command: ip route show default
