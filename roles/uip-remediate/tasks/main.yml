@@ -1,7 +1,6 @@
 ---
-- name: Remediation placeholder
-  ansible.builtin.debug:
-    msg: "Run idempotent remediation for {{ uip_path_key }}"
+- name: Include common remediation tasks
+  ansible.builtin.import_tasks: tasks.d/common.yml
   tags:
     - uip_remediate
     - uip_preupgrade

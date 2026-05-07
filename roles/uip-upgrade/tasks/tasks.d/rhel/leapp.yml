@@ -1,7 +1,8 @@
 ---
 - name: Run Leapp upgrade
   ansible.builtin.command: leapp upgrade
-  register: uip_upgrade_out
-  async: 7200
-  poll: 30
-  when: uip_mode == 'enforce'
+  register: uip_leapp_upgrade
+  changed_when: true
+  tags:
+    - uip_upgrade
+    - uip_upgrade_rhel

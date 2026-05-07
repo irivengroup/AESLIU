@@ -1,17 +1,9 @@
 ---
-- name: Refresh facts after upgrade
-  ansible.builtin.setup:
+- name: Include common postcheck tasks
+  ansible.builtin.import_tasks: tasks.d/common.yml
   tags:
     - uip_postcheck
-
-- name: Assert target version reached
     - uip_postupgrade
-  ansible.builtin.assert:
-    that:
-      - ansible_distribution_version is search(uip_dst_ver | string) or ansible_distribution_major_version | string == uip_dst_ver | string
-    fail_msg: "Target version {{ uip_dst_ver }} not detected after upgrade."
-  tags:
-    - uip_postcheck
 
 - name: Re-enforce target repositories after upgrade
   ansible.builtin.include_role:
@@ -21,6 +13,7 @@
   tags:
     - uip_postcheck
     - uip_repos_enforce_target
+    - uip_postupgrade
 
 - name: Run health commands
   ansible.builtin.command: "{{ item }}"
@@ -30,6 +23,7 @@
   failed_when: false
   tags:
     - uip_postcheck
+    - uip_postupgrade
 
 - name: Write done marker
   ansible.builtin.copy:
@@ -43,6 +37,7 @@
       completed_at: "{{ ansible_date_time.iso8601 }}"
   tags:
     - uip_postcheck
+    - uip_postupgrade
 
 - name: Remove active lock after successful postcheck
   ansible.builtin.file:
@@ -50,3 +45,4 @@
     state: absent
   tags:
     - uip_postcheck
+    - uip_postupgrade

@@ -1,7 +1,8 @@
 ---
 - name: Run SUSE migration
-  ansible.builtin.command: zypper --non-interactive migration
-  register: uip_upgrade_out
-  async: 7200
-  poll: 30
-  when: uip_mode == 'enforce'
+  ansible.builtin.command: "{{ uip_upg_tool }}"
+  register: uip_suse_upgrade
+  changed_when: true
+  tags:
+    - uip_upgrade
+    - uip_upgrade_suse
