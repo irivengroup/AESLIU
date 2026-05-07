@@ -20,14 +20,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build release archives
-  run: |
-    set -euo pipefail
-    git archive --format=zip --output="${RUNNER_TEMP}/linux-uip.zip" HEAD
-    git archive --format=tar.gz --output="${RUNNER_TEMP}/linux-uip.tar.gz" HEAD
+        run: |
+          set -euo pipefail
+          git archive             --format=zip             --output="${RUNNER_TEMP}/linux-uip.zip"             HEAD
+          git archive             --format=tar.gz             --output="${RUNNER_TEMP}/linux-uip.tar.gz"             HEAD
 
-- name: Publish release
-  uses: softprops/action-gh-release@v2
-  with:
-    files: |
-      ${{ runner.temp }}/linux-uip.zip
-      ${{ runner.temp }}/linux-uip.tar.gz
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/linux-uip.zip
+            ${{ runner.temp }}/linux-uip.tar.gz
