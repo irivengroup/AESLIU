@@ -1,4 +1,12 @@
 ---
+- name: Run lock validation before discovery
+  ansible.builtin.include_role:
+    name: uip-lock
+  tags:
+    - uip_discovery
+    - uip_lock
+    - uip_preupgrade
+
 - name: Capture package inventory command
   ansible.builtin.command: >-
     {{

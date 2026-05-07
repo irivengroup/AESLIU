@@ -12,11 +12,6 @@
         - uip_common
         - uip_preupgrade
 
-    - role: uip-lock
-      tags:
-        - uip_lock
-        - uip_preupgrade
-
     - role: uip-discovery
       tags:
         - uip_discovery
