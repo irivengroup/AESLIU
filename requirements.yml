@@ -7,4 +7,3 @@ collections:
   - name: amazon.aws
   - name: azure.azcollection
   - name: google.cloud
-  - name: theforeman.foreman

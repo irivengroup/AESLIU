@@ -361,11 +361,31 @@ Project Initiator — IRIVEN Group
 
 
 
-## Collection dependency note
 
-`redhat.satellite` is intentionally not listed in the public `requirements.yml`
-because it may not resolve from public Ansible Galaxy in GitHub Actions.
 
-The framework keeps `theforeman.foreman` for Galaxy-compatible Foreman/Satellite
-automation primitives. In Red Hat AAP / Automation Hub environments, certified
-Red Hat collections should be pinned in the enterprise execution environment.
+## Satellite Autonomy
+
+Linux UIP does not require the `redhat.satellite` collection.
+
+Satellite support is implemented client-side with native Ansible modules and
+standard Red Hat commands:
+
+```bash
+subscription-manager identity
+subscription-manager status
+subscription-manager repos --disable=<repo>
+subscription-manager repos --enable=<repo>
+yum makecache
+dnf makecache
+```
+
+This keeps the framework compatible with:
+
+- public GitHub Actions runners
+- disconnected environments
+- custom execution environments
+- AAP environments without certified Satellite collections
+
+Satellite Content Views and Lifecycle Environments must already be published and
+promoted by the enterprise repository governance process. UIP consumes these
+approved repositories and enforces the target OS repository state on the host.

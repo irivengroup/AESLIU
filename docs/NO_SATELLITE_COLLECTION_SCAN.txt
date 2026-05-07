@@ -1,0 +1,3 @@
+README.md
+roles/uip-repos/tasks/tasks.d/satellite.yml
+docs/SATELLITE_COLLECTIONS.md
