@@ -6,6 +6,13 @@
     - uip_precheck_sys
     - uip_preupgrade
 
+- name: Include critical filesystem precheck tasks
+  ansible.builtin.import_tasks: tasks.d/fs.yml
+  tags:
+    - uip_precheck
+    - uip_precheck_fs
+    - uip_preupgrade
+
 - name: Include RHEL precheck tasks
   ansible.builtin.import_tasks: tasks.d/rhel.yml
   when: uip_os == "rhel"

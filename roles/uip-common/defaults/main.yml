@@ -19,9 +19,10 @@ uip_repo_enforce_target: true
 uip_snap_enabled: true
 uip_snap_type: none
 uip_snap_ttl_h: 72
-uip_pre_min_root_mb: 4096
+uip_pre_min_root_mb: 8192
 uip_pre_min_boot_mb: 512
-uip_pre_min_var_mb: 4096
+uip_pre_min_var_mb: 6144
+uip_pre_min_tmp_mb: 4096
 uip_svc_crit:
   - sshd
 uip_ports_crit:
