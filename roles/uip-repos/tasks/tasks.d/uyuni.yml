@@ -4,5 +4,4 @@
   changed_when: false
   tags:
   - uip_repos_uyuni
-  - uip_repos
   - uip_preupgrade

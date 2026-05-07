@@ -30,9 +30,4 @@ uip_postupgrade : operations after OS upgrade begins, including reboot, postchec
 
 Nested role entrypoints:
 
-```text
-uip_lock   -> called by uip-discovery
-uip_repos  -> called by uip-discovery and uip-postcheck
-uip_update -> called by uip-precheck
-uip_reboot -> called by uip-update and uip-upgrade
-```
+```textuip_repos  -> called by uip-discovery and uip-postcheck

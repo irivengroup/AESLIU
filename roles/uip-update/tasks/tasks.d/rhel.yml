@@ -5,7 +5,6 @@
     state: present
   when: uip_pkg_mgr == "yum"
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_preupgrade
   - uip_rhel
@@ -15,7 +14,6 @@
     state: present
   when: uip_pkg_mgr == "dnf"
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_preupgrade
   - uip_rhel
@@ -24,7 +22,6 @@
     name: '*'
     state: latest
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_preupgrade
   - uip_rhel
@@ -33,7 +30,6 @@
   changed_when: false
   when: uip_update_clean_cache | bool
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_preupgrade
   - uip_rhel
@@ -43,7 +39,6 @@
   changed_when: false
   failed_when: false
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_update_reboot_check
   - uip_preupgrade
@@ -52,7 +47,6 @@
   ansible.builtin.set_fact:
     uip_update_reboot_required: '{{ uip_reboot_required_rhel.rc | default(0) != 0 }}'
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_update_reboot_check
   - uip_preupgrade
@@ -61,7 +55,6 @@
   ansible.builtin.debug:
     msg: 'Baseline update reboot required: {{ uip_update_reboot_required }}'
   tags:
-  - uip_update
   - uip_update_rhel
   - uip_update_reboot_check
   - uip_preupgrade

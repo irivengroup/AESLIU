@@ -6,7 +6,6 @@
   tags:
   - uip_repos_airgap
   - uip_preupgrade
-  - uip_repos
 - name: Fail if airgap target repository is missing
   ansible.builtin.fail:
     msg: Airgap target repo {{ uip_repo_def.dst_mount }} is missing.
@@ -14,7 +13,6 @@
   tags:
   - uip_repos_airgap
   - uip_preupgrade
-  - uip_repos
 - name: Configure airgap RPM target repository
   ansible.builtin.copy:
     dest: '{{ uip_repo_def.dst_repo_file }}'
@@ -34,7 +32,6 @@
   tags:
   - uip_repos_airgap
   - uip_preupgrade
-  - uip_repos
 - name: Configure airgap APT target repository
   ansible.builtin.copy:
     dest: '{{ uip_repo_def.dst_list_file }}'
@@ -49,4 +46,3 @@
   tags:
   - uip_repos_airgap
   - uip_preupgrade
-  - uip_repos

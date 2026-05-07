@@ -15,7 +15,6 @@
   failed_when: false
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade
 - name: Read repository files after configuration
   ansible.builtin.slurp:
@@ -25,7 +24,6 @@
   failed_when: false
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade
 - name: Build target repository corpus
   ansible.builtin.set_fact:
@@ -33,7 +31,6 @@
       \  | map('b64decode')\n  | join('\\n')\n}}"
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade
 - name: Set expected target repository URL list
   ansible.builtin.set_fact:
@@ -42,7 +39,6 @@
       \ is defined\n  else []\n}}"
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade
 - name: Assert repositories point to target OS URLs
   ansible.builtin.assert:
@@ -54,7 +50,6 @@
   when: uip_repo_mgr not in ['native'] or uip_pkg_mgr == 'apt'
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade
 - name: Save target repository URL report
   ansible.builtin.copy:
@@ -63,5 +58,4 @@
     content: '{{ uip_target_urls | to_nice_yaml }}'
   tags:
   - uip_repos_enforce_target
-  - uip_repos
   - uip_preupgrade

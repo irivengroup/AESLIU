@@ -3,7 +3,6 @@
   ansible.builtin.command: zypper --non-interactive refresh
   changed_when: false
   tags:
-  - uip_update
   - uip_update_suse
   - uip_preupgrade
   - uip_suse
@@ -12,7 +11,6 @@
   register: uip_suse_update
   changed_when: '''Nothing to do'' not in uip_suse_update.stdout'
   tags:
-  - uip_update
   - uip_update_suse
   - uip_preupgrade
   - uip_suse
@@ -21,7 +19,6 @@
   changed_when: false
   when: uip_update_clean_cache | bool
   tags:
-  - uip_update
   - uip_update_suse
   - uip_preupgrade
   - uip_suse
@@ -30,7 +27,6 @@
     path: /var/run/reboot-needed
   register: uip_reboot_required_suse_marker
   tags:
-  - uip_update
   - uip_update_suse
   - uip_update_reboot_check
   - uip_preupgrade
@@ -41,7 +37,6 @@
   changed_when: false
   failed_when: false
   tags:
-  - uip_update
   - uip_update_suse
   - uip_update_reboot_check
   - uip_preupgrade
@@ -51,7 +46,6 @@
     uip_update_reboot_required: "{{\n  (uip_reboot_required_suse_marker.stat.exists | default(false))\n  or\n  (uip_reboot_required_suse.rc |\
       \ default(0) != 0)\n}}"
   tags:
-  - uip_update
   - uip_update_suse
   - uip_update_reboot_check
   - uip_preupgrade
@@ -60,7 +54,6 @@
   ansible.builtin.debug:
     msg: 'Baseline update reboot required: {{ uip_update_reboot_required }}'
   tags:
-  - uip_update
   - uip_update_suse
   - uip_update_reboot_check
   - uip_preupgrade

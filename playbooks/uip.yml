@@ -13,8 +13,6 @@
   - role: uip-discovery
     tags:
     - uip_discovery
-    - uip_lock
-    - uip_repos
     - uip_preupgrade
   - role: uip-snapshot
     tags:
@@ -23,7 +21,6 @@
   - role: uip-precheck
     tags:
     - uip_precheck
-    - uip_update
     - uip_preupgrade
   - role: uip-remediate
     tags:
@@ -32,12 +29,10 @@
   - role: uip-upgrade
     tags:
     - uip_upgrade
-    - uip_reboot
     - uip_postupgrade
   - role: uip-postcheck
     tags:
     - uip_postcheck
-    - uip_repos
     - uip_postupgrade
     - uip_repos_enforce_target
   - role: uip-report

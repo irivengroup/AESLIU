@@ -11,7 +11,6 @@
   when: uip_pkg_mgr == "apt"
   tags:
   - uip_repos_native
-  - uip_repos
   - uip_preupgrade
 - name: Native repository manager selected for RPM/SUSE
   ansible.builtin.debug:
@@ -19,5 +18,4 @@
   when: uip_pkg_mgr in ['yum', 'dnf', 'zypper']
   tags:
   - uip_repos_native
-  - uip_repos
   - uip_preupgrade

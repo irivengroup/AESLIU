@@ -4,6 +4,5 @@
   changed_when: false
   tags:
   - uip_repos_suse_mgr
-  - uip_repos
   - uip_preupgrade
   - uip_suse
