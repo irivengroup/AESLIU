@@ -59,3 +59,14 @@
   tags:
     - uip_repos_enforce_target
     - uip_preupgrade
+
+
+- name: Include RHEL repository pre lifecycle tasks
+  ansible.builtin.import_tasks: rhel/pre.yml
+  when: uip_os == "rhel"
+
+- name: Include RHEL repository post lifecycle tasks
+  ansible.builtin.import_tasks: rhel/post.yml
+  when:
+    - uip_os == "rhel"
+    - uip_repo_postupgrade_mode | default(false) | bool

@@ -1,0 +1,8 @@
+---
+- name: Disable RHSM auto attach
+  ansible.builtin.command: subscription-manager auto-attach --disable
+  changed_when: false
+  failed_when: false
+  when: uip_repo_mgr in ["satellite", "native"]
+  tags:
+    - uip_preupgrade
