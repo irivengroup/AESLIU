@@ -40,3 +40,14 @@ uip_reboot_post_delay: 20
 uip_reboot_state_file: /var/lib/uip/reboot-state.yml
 uip_reboot_current_step: unknown
 uip_reboot_next_step: unknown
+uip_remediate_fs_size_threshold_mb: 2048
+uip_remediate_fstab_backup: "/etc/before-uip.fstab.original"
+uip_remediate_fstab_network_prefix: "##-UIP-##"
+uip_remediate_kernel_keep: 2
+uip_remediate_boot_cleanup: true
+uip_remediate_lvm_extend: true
+uip_remediate_grub_reconfigure: true
+uip_remediate_fix_inhibitors: true
+uip_remediate_comment_network_mounts: true
+
+uip_rhel6_to_7_instrepo: ""

@@ -1,0 +1,135 @@
+---
+- name: Check critical filesystem report
+  ansible.builtin.stat:
+    path: "{{ uip_report_dir }}/precheck-filesystems.yml"
+  register: uip_fs_report_stat
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Read critical filesystem report
+  ansible.builtin.slurp:
+    src: "{{ uip_report_dir }}/precheck-filesystems.yml"
+  register: uip_fs_report_raw
+  when: uip_fs_report_stat.stat.exists
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Decode critical filesystem report
+  ansible.builtin.set_fact:
+    uip_pre_fs_report: "{{ uip_fs_report_raw.content | b64decode | from_yaml }}"
+  when: uip_fs_report_stat.stat.exists
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Initialize filesystem remediation report
+  ansible.builtin.set_fact:
+    uip_remediate_fs_report: []
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Collect mount source for critical filesystems
+  ansible.builtin.command: "findmnt -n -o SOURCE --target {{ item.path }}"
+  register: uip_fs_sources
+  changed_when: false
+  failed_when: false
+  loop: "{{ uip_pre_fs_report | default([]) }}"
+  when:
+    - item.status == "ko"
+    - item.path != "/boot"
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Extend LVM-backed filesystems when VG has free space
+  ansible.builtin.command: >-
+    lvextend -r -L +{{ ((item.item.min_required_mb | int) - (item.item.free_mb | int)) + (uip_remediate_fs_size_threshold_mb | int) }}M
+    {{ item.stdout }}
+  register: uip_lvextend_results
+  changed_when: uip_lvextend_results.rc == 0
+  failed_when: false
+  loop: "{{ uip_fs_sources.results | default([]) }}"
+  when:
+    - uip_remediate_lvm_extend | bool
+    - item.rc == 0
+    - item.stdout is match('^/dev/')
+    - "'mapper' in item.stdout or '/dev/' in item.stdout"
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Refresh facts after filesystem remediation
+  ansible.builtin.setup:
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Rebuild critical filesystem verification report after remediation
+  ansible.builtin.set_fact:
+    uip_remediate_fs_report: "{{ uip_remediate_fs_report | default([]) + [uip_fs_item] }}"
+  vars:
+    uip_fs_mount: >-
+      {{
+        (
+          ansible_mounts
+          | selectattr('mount', 'equalto', item.path)
+          | list
+          | first
+        ) | default({})
+      }}
+    uip_fs_free_mb: "{{ (uip_fs_mount.size_available | default(0) | int) // 1024 // 1024 }}"
+    uip_fs_item:
+      name: "{{ item.name }}"
+      path: "{{ item.path }}"
+      free_mb: "{{ uip_fs_free_mb | int }}"
+      status: "{{ 'ok' if (uip_fs_free_mb | int) >= (item.min_required_mb | int) else item.status }}"
+      min_required_mb: "{{ item.min_required_mb | int }}"
+      mount: "{{ uip_fs_mount.mount | default(item.mount) }}"
+      fstype: "{{ uip_fs_mount.fstype | default(item.fstype) }}"
+  loop: "{{ uip_pre_fs_report | default([]) }}"
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Persist filesystem remediation report
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/remediate-filesystems.yml"
+    owner: root
+    group: root
+    mode: "0640"
+    content: "{{ uip_remediate_fs_report | to_nice_yaml }}"
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Build list of unresolved filesystem constraints
+  ansible.builtin.set_fact:
+    uip_fs_unresolved: "{{ uip_remediate_fs_report | selectattr('status', 'equalto', 'ko') | list }}"
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Fail when critical filesystem constraints remain unresolved
+  ansible.builtin.fail:
+    msg: >-
+      Critical filesystem prerequisites remain unresolved:
+      {{ uip_fs_unresolved | to_nice_yaml }}
+  when:
+    - uip_fs_unresolved | length > 0
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade

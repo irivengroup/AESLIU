@@ -4,3 +4,39 @@
   tags:
     - uip_remediate
     - uip_preupgrade
+
+- name: Include fstab remediation tasks
+  ansible.builtin.import_tasks: tasks.d/fstab.yml
+  tags:
+    - uip_remediate
+    - uip_remediate_fstab
+    - uip_preupgrade
+
+- name: Include filesystem remediation tasks
+  ansible.builtin.import_tasks: tasks.d/filesystems.yml
+  tags:
+    - uip_remediate
+    - uip_remediate_fs
+    - uip_preupgrade
+
+- name: Include kernel cleanup tasks
+  ansible.builtin.import_tasks: tasks.d/kernel.yml
+  tags:
+    - uip_remediate
+    - uip_remediate_kernel
+    - uip_preupgrade
+
+- name: Include GRUB remediation tasks
+  ansible.builtin.import_tasks: tasks.d/grub.yml
+  tags:
+    - uip_remediate
+    - uip_remediate_grub
+    - uip_preupgrade
+
+- name: Include inhibitor remediation tasks
+  ansible.builtin.import_tasks: tasks.d/inhibitors.yml
+  when: uip_remediate_fix_inhibitors | bool
+  tags:
+    - uip_remediate
+    - uip_remediate_inhibitors
+    - uip_preupgrade

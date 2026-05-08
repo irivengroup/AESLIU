@@ -22,6 +22,29 @@
   tags:
     - uip_postcheck
     - uip_postupgrade
+- name: Restore original fstab after successful upgrade
+  ansible.builtin.copy:
+    src: "{{ uip_remediate_fstab_backup }}"
+    dest: /etc/fstab
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: true
+  when:
+    - uip_remediate_fstab_backup is defined
+  tags:
+    - uip_postcheck
+    - uip_postupgrade
+
+- name: Validate restored fstab
+  ansible.builtin.command: findmnt --verify --tab-file /etc/fstab
+  register: uip_post_fstab_verify
+  changed_when: false
+  failed_when: uip_post_fstab_verify.rc != 0
+  tags:
+    - uip_postcheck
+    - uip_postupgrade
+
 - name: Write done marker
   ansible.builtin.copy:
     dest: '{{ uip_done_file }}'

@@ -1,10 +1,26 @@
 ---
 - name: Run RHEL 6 to 7 upgrade tool
-  ansible.builtin.command: '{{ uip_upg_tool }}'
+  ansible.builtin.command: redhat-upgrade-tool --network 7.0 --instrepo "{{ uip_rhel6_to_7_instrepo | default('') }}"
   register: uip_rhel6_upgrade
   changed_when: true
+  failed_when: uip_rhel6_upgrade.rc != 0
+  when: uip_mode == "enforce"
   tags:
     - uip_upgrade
-    - uip_upgrade_rhel
     - uip_postupgrade
-    - uip_rhel
+
+- name: Save RHEL 6 to 7 upgrade output
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/rhel6-to-7-upgrade.txt"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      stdout:
+      {{ uip_rhel6_upgrade.stdout | default('') }}
+      stderr:
+      {{ uip_rhel6_upgrade.stderr | default('') }}
+  when: uip_mode == "enforce"
+  tags:
+    - uip_upgrade
+    - uip_postupgrade
