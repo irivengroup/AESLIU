@@ -1,0 +1,23 @@
+---
+- name: Register GCP snapshot reference
+  ansible.builtin.set_fact:
+    uip_provider_snapshot_ref: "{{ uip_snapshot_id }}"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Persist GCP snapshot intent
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/snapshot-gcp.yml"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      provider: "gcp"
+      snapshot_id: "{{ uip_snapshot_id }}"
+      provider_snapshot_ref: "{{ uip_provider_snapshot_ref }}"
+      api_mode: "rest"
+      note: "Provider REST credentials are present; wire signed enterprise API call here."
+  tags:
+    - uip_snapshot
+    - uip_preupgrade

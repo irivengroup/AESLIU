@@ -1,0 +1,107 @@
+---
+- name: Detect virtualization
+  ansible.builtin.command: systemd-detect-virt
+  register: uip_detect_virt
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Set server type
+  ansible.builtin.set_fact:
+    uip_server_type: "{{ 'physical' if uip_detect_virt.rc != 0 else 'vm' }}"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Detect AWS metadata
+  ansible.builtin.uri:
+    url: http://169.254.169.254/latest/meta-data/instance-id
+    method: GET
+    timeout: 2
+    return_content: true
+  register: uip_aws_metadata
+  changed_when: false
+  failed_when: false
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Detect Azure metadata
+  ansible.builtin.uri:
+    url: http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    method: GET
+    headers:
+      Metadata: "true"
+    timeout: 2
+    return_content: false
+  register: uip_azure_metadata
+  changed_when: false
+  failed_when: false
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Detect GCP metadata
+  ansible.builtin.uri:
+    url: http://metadata.google.internal/computeMetadata/v1/instance/id
+    method: GET
+    headers:
+      Metadata-Flavor: Google
+    timeout: 2
+    return_content: false
+  register: uip_gcp_metadata
+  changed_when: false
+  failed_when: false
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Set VM provider
+  ansible.builtin.set_fact:
+    uip_vm_provider: >-
+      {{
+        'aws' if uip_aws_metadata.status | default(0) == 200
+        else 'azure' if uip_azure_metadata.status | default(0) == 200
+        else 'gcp' if uip_gcp_metadata.status | default(0) == 200
+        else 'openstack' if uip_detect_virt.stdout == 'openstack'
+        else 'vmware' if uip_detect_virt.stdout == 'vmware'
+        else uip_detect_virt.stdout | default('unknown')
+      }}
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Build unique snapshot identifier
+  ansible.builtin.set_fact:
+    uip_snapshot_id: >-
+      {{
+        uip_snapshot_name_prefix ~ '-' ~ inventory_hostname ~ '-' ~
+        uip_os ~ '-' ~ uip_src_ver ~ '-to-' ~ uip_dst_ver ~ '-' ~
+        ansible_date_time.iso8601_basic_short
+      }}
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Persist snapshot detection report
+  ansible.builtin.copy:
+    dest: "{{ uip_snapshot_report_file }}"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      server_type: "{{ uip_server_type }}"
+      vm_provider: "{{ uip_vm_provider | default('none') }}"
+      virtualization: "{{ uip_detect_virt.stdout | default('physical') }}"
+      snapshot_id: "{{ uip_snapshot_id | default('none') }}"
+      detected_at: "{{ ansible_date_time.iso8601 }}"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade

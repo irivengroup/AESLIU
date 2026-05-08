@@ -155,3 +155,15 @@ uip_network_future_report: "{{ uip_report_dir }}/network-future-state.yml"
 uip_bootloader_backup_enabled: true
 
 uip_bootloader_backup_dir: "{{ uip_backup_dir | default(uip_state_dir ~ '/backup') }}/bootloader"
+
+uip_snapshot_required_for_vm: true
+
+uip_snapshot_skip_physical: true
+
+uip_snapshot_api_timeout: 60
+
+uip_snapshot_name_prefix: uip
+
+uip_snapshot_state_file: "{{ uip_state_dir }}/snapshot.yml"
+
+uip_snapshot_report_file: "{{ uip_report_dir }}/snapshot.yml"

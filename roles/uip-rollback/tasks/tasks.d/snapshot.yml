@@ -1,0 +1,31 @@
+---
+- name: Check UIP snapshot state
+  ansible.builtin.stat:
+    path: "{{ uip_snapshot_state_file }}"
+  register: uip_rollback_snapshot_state_stat
+  tags:
+    - uip_rollback
+
+- name: Read UIP snapshot state
+  ansible.builtin.slurp:
+    src: "{{ uip_snapshot_state_file }}"
+  register: uip_rollback_snapshot_state_raw
+  when: uip_rollback_snapshot_state_stat.stat.exists
+  tags:
+    - uip_rollback
+
+- name: Decode UIP snapshot state
+  ansible.builtin.set_fact:
+    uip_rollback_snapshot_state: "{{ uip_rollback_snapshot_state_raw.content | b64decode | from_yaml }}"
+  when: uip_rollback_snapshot_state_stat.stat.exists
+  tags:
+    - uip_rollback
+
+- name: Report rollback snapshot reference
+  ansible.builtin.debug:
+    msg: >-
+      Rollback snapshot provider={{ uip_rollback_snapshot_state.provider | default('none') }},
+      snapshot={{ uip_rollback_snapshot_state.provider_snapshot_ref | default('none') }}.
+  when: uip_rollback_snapshot_state is defined
+  tags:
+    - uip_rollback

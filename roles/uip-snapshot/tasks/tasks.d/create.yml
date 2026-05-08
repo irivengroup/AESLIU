@@ -1,0 +1,38 @@
+---
+- name: Assert VM snapshot credentials are available
+  ansible.builtin.assert:
+    that:
+      - uip_creds is defined
+      - uip_creds[uip_vm_provider] is defined
+      - uip_creds[uip_vm_provider].enabled | bool
+    fail_msg: >-
+      VM snapshot is mandatory for {{ uip_vm_provider }} but credentials are
+      missing or disabled in roles/uip-common/vars/._uipcreds.yml.
+  no_log: true
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Include provider snapshot creation
+  ansible.builtin.include_tasks: "providers/{{ uip_vm_provider }}.yml"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Persist VM snapshot state for rollback
+  ansible.builtin.copy:
+    dest: "{{ uip_snapshot_state_file }}"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      host: "{{ inventory_hostname }}"
+      server_type: "{{ uip_server_type }}"
+      provider: "{{ uip_vm_provider }}"
+      snapshot_id: "{{ uip_snapshot_id }}"
+      provider_snapshot_ref: "{{ uip_provider_snapshot_ref | default(uip_snapshot_id) }}"
+      rollback_ready: true
+      created_at: "{{ ansible_date_time.iso8601 }}"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade

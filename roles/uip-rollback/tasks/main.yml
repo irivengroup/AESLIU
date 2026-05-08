@@ -17,6 +17,11 @@
   tags:
     - uip_rollback
 
+- name: Include rollback snapshot state preparation
+  ansible.builtin.import_tasks: tasks.d/snapshot.yml
+  tags:
+    - uip_rollback
+
 - name: Include rollback state validation
   ansible.builtin.import_tasks: tasks.d/state.yml
   tags:

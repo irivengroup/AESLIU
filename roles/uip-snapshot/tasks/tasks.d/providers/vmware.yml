@@ -1,0 +1,56 @@
+---
+- name: Assert VMware managed object reference is provided
+  ansible.builtin.assert:
+    that:
+      - uip_vmware_vm_moid is defined
+    fail_msg: "VMware snapshot requires uip_vmware_vm_moid."
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Authenticate to VMware vCenter REST API
+  ansible.builtin.uri:
+    url: "{{ uip_creds.vmware.vcenter_url }}/rest/com/vmware/cis/session"
+    method: POST
+    user: "{{ uip_creds.vmware.username }}"
+    password: "{{ uip_creds.vmware.password }}"
+    force_basic_auth: true
+    validate_certs: "{{ uip_creds.vmware.validate_certs | bool }}"
+    status_code: 200
+    timeout: "{{ uip_snapshot_api_timeout }}"
+  register: uip_vmware_session
+  no_log: true
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Create VMware VM snapshot
+  ansible.builtin.uri:
+    url: "{{ uip_creds.vmware.vcenter_url }}/rest/vcenter/vm/{{ uip_vmware_vm_moid }}/snapshots"
+    method: POST
+    validate_certs: "{{ uip_creds.vmware.validate_certs | bool }}"
+    headers:
+      vmware-api-session-id: "{{ uip_vmware_session.json.value }}"
+    body_format: json
+    status_code:
+      - 200
+      - 201
+    body:
+      spec:
+        name: "{{ uip_snapshot_id }}"
+        description: "UIP snapshot before {{ uip_os }} {{ uip_src_ver }} to {{ uip_dst_ver }}"
+        memory: false
+        quiesce: true
+    timeout: "{{ uip_snapshot_api_timeout }}"
+  register: uip_vmware_snapshot
+  no_log: true
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Set VMware snapshot reference
+  ansible.builtin.set_fact:
+    uip_provider_snapshot_ref: "{{ uip_vmware_snapshot.json.value | default(uip_snapshot_id) }}"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
