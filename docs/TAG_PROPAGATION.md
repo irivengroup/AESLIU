@@ -1,11 +1,8 @@
 # Tag Propagation
 
-Nested roles and imported task files inherit their parent execution tags.
+Nested role calls keep the tags of their parent execution path.
 
-This prevents `--tags` filtered runs from skipping expected child tasks when a
-role calls another role or imports task scopes.
-
-Forbidden standalone tags remain removed:
+Standalone role-specific tags remain removed:
 
 ```text
 uip_lock

@@ -3,17 +3,21 @@
   ansible.builtin.debug:
     msg: Snapshot type={{ uip_snap_type }} enabled={{ uip_snap_enabled }}
   tags:
-  - uip_snapshot
-  - uip_preupgrade
+    - uip_snapshot
+    - uip_preupgrade
+    - uip_precheck
+
 - name: Run baseline update after snapshot completion
   ansible.builtin.include_role:
     name: uip-update
     apply:
       tags:
-      - uip_snapshot
-      - uip_preupgrade
+        - uip_snapshot
+        - uip_preupgrade
+        - uip_precheck
   when:
-  - uip_update_before_upgrade | bool
+    - uip_update_before_upgrade | bool
   tags:
-  - uip_snapshot
-  - uip_preupgrade
+    - uip_snapshot
+    - uip_preupgrade
+    - uip_precheck

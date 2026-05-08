@@ -130,8 +130,6 @@ uip_rollback_report_file: "{{ uip_report_dir }}/rollback-report.yml"
 
 uip_pre_min_boot_efi_mb: 512
 
-
-
 uip_bootloader_validate_config: true
 
 uip_bootloader_bootability_checks: true
