@@ -34,7 +34,6 @@
     - uip_remediate_bootloader
     - uip_preupgrade
 
-
 - name: Include RHEL remediation tasks
   ansible.builtin.import_tasks: tasks.d/rhel/main.yml
   when: uip_os == "rhel"

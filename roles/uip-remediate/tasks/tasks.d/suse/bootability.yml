@@ -1,4 +1,36 @@
 ---
+- name: Capture SUSE root mount source
+  ansible.builtin.command: findmnt -n -o SOURCE --target /
+  register: uip_root_source
+  changed_when: false
+  failed_when: uip_root_source.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture SUSE fstab content
+  ansible.builtin.slurp:
+    src: /etc/fstab
+  register: uip_fstab_raw
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate SUSE root source is present in fstab
+  ansible.builtin.assert:
+    that:
+      - (uip_fstab_raw.content | b64decode) is search(uip_root_source.stdout | regex_escape)
+    fail_msg: "SUSE root filesystem source is not aligned with /etc/fstab."
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
 - name: Detect SUSE firmware mode
   ansible.builtin.stat:
     path: /sys/firmware/efi
@@ -13,6 +45,17 @@
   ansible.builtin.set_fact:
     uip_boot_mode: "{{ 'uefi' if uip_bootability_efi_stat.stat.exists else 'bios' }}"
     uip_bootability_grub_cfg: "/boot/grub2/grub.cfg"
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Rebuild SUSE initrd
+  ansible.builtin.command: mkinitrd
+  register: uip_mkinitrd
+  changed_when: true
+  failed_when: false
   tags:
     - uip_remediate
     - uip_remediate_suse
@@ -81,6 +124,83 @@
   register: uip_bootability_kernel_in_grub
   changed_when: false
   failed_when: uip_bootability_kernel_in_grub.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture SUSE mdraid state
+  ansible.builtin.command: cat /proc/mdstat
+  register: uip_mdstat
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture SUSE multipath state
+  ansible.builtin.command: multipath -ll
+  register: uip_multipath
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate SUSE sshd configuration syntax
+  ansible.builtin.command: sshd -t
+  register: uip_sshd_check
+  changed_when: false
+  failed_when: uip_sshd_check.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate SUSE sudoers syntax
+  ansible.builtin.command: visudo -c
+  register: uip_visudo_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture SUSE loaded modules
+  ansible.builtin.command: lsmod
+  register: uip_lsmod
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_suse
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Persist SUSE bootability report
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/bootability-suse.yml"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      root_source: "{{ uip_root_source.stdout }}"
+      grub_cfg: "{{ uip_bootability_grub_cfg }}"
+      running_kernel: "{{ uip_bootability_running_kernel.stdout }}"
+      mdraid: |
+      {{ uip_mdstat.stdout | default('') | indent(2, true) }}
+      multipath: |
+      {{ uip_multipath.stdout | default('') | indent(2, true) }}
+      modules: |
+      {{ uip_lsmod.stdout | default('') | indent(2, true) }}
   tags:
     - uip_remediate
     - uip_remediate_suse

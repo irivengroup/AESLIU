@@ -130,9 +130,7 @@ uip_rollback_report_file: "{{ uip_report_dir }}/rollback-report.yml"
 
 uip_pre_min_boot_efi_mb: 512
 
-uip_bootloader_backup_enabled: true
 
-uip_bootloader_backup_dir: "{{ uip_backup_dir | default(uip_state_dir ~ '/backup') }}/bootloader"
 
 uip_bootloader_validate_config: true
 
@@ -155,3 +153,7 @@ uip_network_cleanup_legacy: true
 uip_network_backup_dir: "{{ uip_backup_dir | default(uip_state_dir ~ '/backup') }}/network"
 
 uip_network_future_report: "{{ uip_report_dir }}/network-future-state.yml"
+
+uip_bootloader_backup_enabled: true
+
+uip_bootloader_backup_dir: "{{ uip_backup_dir | default(uip_state_dir ~ '/backup') }}/bootloader"

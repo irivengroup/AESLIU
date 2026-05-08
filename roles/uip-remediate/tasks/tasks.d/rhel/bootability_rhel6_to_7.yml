@@ -1,8 +1,85 @@
 ---
-- name: Detect RHEL 6 firmware mode
+
+- name: Capture RHEL root mount source
+  ansible.builtin.command: findmnt -n -o SOURCE --target /
+  register: uip_root_source
+  changed_when: false
+  failed_when: uip_root_source.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL fstab content
+  ansible.builtin.slurp:
+    src: /etc/fstab
+  register: uip_fstab_raw
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate RHEL root source is present in fstab
+  ansible.builtin.assert:
+    that:
+      - (uip_fstab_raw.content | b64decode) is search(uip_root_source.stdout | regex_escape)
+    fail_msg: "RHEL root filesystem source is not aligned with /etc/fstab."
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL blkid inventory
+  ansible.builtin.command: blkid
+  register: uip_blkid
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL mdraid state
+  ansible.builtin.command: cat /proc/mdstat
+  register: uip_mdstat
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL multipath state
+  ansible.builtin.command: multipath -ll
+  register: uip_multipath
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Detect RHEL firmware mode
   ansible.builtin.stat:
     path: /sys/firmware/efi
   register: uip_bootability_efi_stat
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Detect RHEL running kernel
+  ansible.builtin.command: uname -r
+  register: uip_bootability_running_kernel
+  changed_when: false
+  failed_when: uip_bootability_running_kernel.rc != 0
   tags:
     - uip_remediate
     - uip_remediate_rhel
@@ -19,11 +96,22 @@
     - uip_remediate_bootloader
     - uip_preupgrade
 
-- name: Detect RHEL 6 running kernel
-  ansible.builtin.command: uname -r
-  register: uip_bootability_running_kernel
+- name: Rebuild RHEL 6 initramfs
+  ansible.builtin.command: dracut -f --regenerate-all
+  register: uip_dracut_regen
+  changed_when: true
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL 6 initramfs inventory
+  ansible.builtin.command: lsinitrd
+  register: uip_lsinitrd
   changed_when: false
-  failed_when: uip_bootability_running_kernel.rc != 0
+  failed_when: false
   tags:
     - uip_remediate
     - uip_remediate_rhel
@@ -81,6 +169,106 @@
   register: uip_bootability_kernel_in_grub
   changed_when: false
   failed_when: uip_bootability_kernel_in_grub.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate RHEL sshd configuration syntax
+  ansible.builtin.command: sshd -t
+  register: uip_sshd_check
+  changed_when: false
+  failed_when: uip_sshd_check.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate RHEL sudoers syntax
+  ansible.builtin.command: visudo -c
+  register: uip_visudo_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL SELinux status
+  ansible.builtin.command: sestatus
+  register: uip_selinux_status
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL loaded modules
+  ansible.builtin.command: lsmod
+  register: uip_lsmod
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL DKMS state
+  ansible.builtin.command: dkms status
+  register: uip_dkms
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture RHEL kmod packages
+  ansible.builtin.shell: |
+    set -o pipefail
+    rpm -qa | grep -i kmod || true
+  args:
+    executable: /bin/bash
+  register: uip_kmods_rpm
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_rhel
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Persist RHEL 6 to 7 bootability report
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/bootability-rhel6-to-7.yml"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      root_source: "{{ uip_root_source.stdout }}"
+      grub_cfg: "{{ uip_bootability_grub_cfg }}"
+      running_kernel: "{{ uip_bootability_running_kernel.stdout }}"
+      blkid: |
+      {{ uip_blkid.stdout | default('') | indent(2, true) }}
+      mdraid: |
+      {{ uip_mdstat.stdout | default('') | indent(2, true) }}
+      multipath: |
+      {{ uip_multipath.stdout | default('') | indent(2, true) }}
+      selinux: |
+      {{ uip_selinux_status.stdout | default('') | indent(2, true) }}
+      modules: |
+      {{ uip_lsmod.stdout | default('') | indent(2, true) }}
+      dkms: |
+      {{ uip_dkms.stdout | default('') | indent(2, true) }}
+      kmods: |
+      {{ uip_kmods_rpm.stdout | default('') | indent(2, true) }}
   tags:
     - uip_remediate
     - uip_remediate_rhel

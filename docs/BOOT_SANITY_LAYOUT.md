@@ -1,8 +1,14 @@
-# Bootloader Bootability Checks
+# Bootability Layout
 
-Bootability checks are separated by ecosystem and, where needed, by OS version path.
+Boot sanity checks have been merged into bootability files.
 
-Layout:
+The rule remains:
+
+```text
+ecosystem -> OS/version path
+```
+
+Current layout:
 
 ```text
 roles/uip-remediate/tasks/tasks.d/rhel/bootability.yml
@@ -13,6 +19,4 @@ roles/uip-remediate/tasks/tasks.d/ubuntu/bootability.yml
 roles/uip-remediate/tasks/tasks.d/suse/bootability.yml
 ```
 
-RHEL `6 -> 7` is handled separately from Leapp-based RHEL paths.
-
-System backup is expected to be handled outside UIP before the upgrade run.
+No separate `boot_sanity` files are used.

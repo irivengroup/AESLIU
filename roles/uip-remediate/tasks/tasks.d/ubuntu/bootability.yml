@@ -1,4 +1,36 @@
 ---
+- name: Capture Ubuntu root mount source
+  ansible.builtin.command: findmnt -n -o SOURCE --target /
+  register: uip_root_source
+  changed_when: false
+  failed_when: uip_root_source.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture Ubuntu fstab content
+  ansible.builtin.slurp:
+    src: /etc/fstab
+  register: uip_fstab_raw
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate Ubuntu root source is present in fstab
+  ansible.builtin.assert:
+    that:
+      - (uip_fstab_raw.content | b64decode) is search(uip_root_source.stdout | regex_escape)
+    fail_msg: "Ubuntu root filesystem source is not aligned with /etc/fstab."
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
 - name: Detect Ubuntu firmware mode
   ansible.builtin.stat:
     path: /sys/firmware/efi
@@ -19,11 +51,33 @@
     - uip_remediate_bootloader
     - uip_preupgrade
 
+- name: Rebuild Ubuntu initramfs
+  ansible.builtin.command: update-initramfs -u -k all
+  register: uip_initramfs_regen
+  changed_when: true
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
 - name: Detect Ubuntu running kernel
   ansible.builtin.command: uname -r
   register: uip_bootability_running_kernel
   changed_when: false
   failed_when: uip_bootability_running_kernel.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture Ubuntu initramfs inventory
+  ansible.builtin.command: lsinitramfs /boot/initrd.img-{{ uip_bootability_running_kernel.stdout }}
+  register: uip_lsinitramfs
+  changed_when: false
+  failed_when: false
   tags:
     - uip_remediate
     - uip_remediate_ubuntu
@@ -81,6 +135,72 @@
   register: uip_bootability_kernel_in_grub
   changed_when: false
   failed_when: uip_bootability_kernel_in_grub.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate Ubuntu sshd configuration syntax
+  ansible.builtin.command: sshd -t
+  register: uip_sshd_check
+  changed_when: false
+  failed_when: uip_sshd_check.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Validate Ubuntu sudoers syntax
+  ansible.builtin.command: visudo -c
+  register: uip_visudo_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture Ubuntu loaded modules
+  ansible.builtin.command: lsmod
+  register: uip_lsmod
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Capture Ubuntu DKMS state
+  ansible.builtin.command: dkms status
+  register: uip_dkms
+  changed_when: false
+  failed_when: false
+  tags:
+    - uip_remediate
+    - uip_remediate_ubuntu
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Persist Ubuntu bootability report
+  ansible.builtin.copy:
+    dest: "{{ uip_report_dir }}/bootability-ubuntu.yml"
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      root_source: "{{ uip_root_source.stdout }}"
+      grub_cfg: "{{ uip_bootability_grub_cfg }}"
+      running_kernel: "{{ uip_bootability_running_kernel.stdout }}"
+      initramfs: |
+      {{ uip_lsinitramfs.stdout | default('') | indent(2, true) }}
+      modules: |
+      {{ uip_lsmod.stdout | default('') | indent(2, true) }}
+      dkms: |
+      {{ uip_dkms.stdout | default('') | indent(2, true) }}
   tags:
     - uip_remediate
     - uip_remediate_ubuntu
