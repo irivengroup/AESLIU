@@ -15,61 +15,81 @@
     - uip_snapshot
     - uip_preupgrade
 
-- name: Detect AWS metadata
-  ansible.builtin.uri:
-    url: http://169.254.169.254/latest/meta-data/instance-id
-    method: GET
-    timeout: 2
-    return_content: true
-  register: uip_aws_metadata
-  changed_when: false
+- name: Read local DMI product name
+  ansible.builtin.slurp:
+    src: /sys/class/dmi/id/product_name
+  register: uip_dmi_product_name
   failed_when: false
   when: uip_server_type == "vm"
   tags:
     - uip_snapshot
     - uip_preupgrade
 
-- name: Detect Azure metadata
-  ansible.builtin.uri:
-    url: http://169.254.169.254/metadata/instance?api-version=2021-02-01
-    method: GET
-    headers:
-      Metadata: "true"
-    timeout: 2
-    return_content: false
-  register: uip_azure_metadata
-  changed_when: false
+- name: Read local DMI sys vendor
+  ansible.builtin.slurp:
+    src: /sys/class/dmi/id/sys_vendor
+  register: uip_dmi_sys_vendor
   failed_when: false
   when: uip_server_type == "vm"
   tags:
     - uip_snapshot
     - uip_preupgrade
 
-- name: Detect GCP metadata
-  ansible.builtin.uri:
-    url: http://metadata.google.internal/computeMetadata/v1/instance/id
-    method: GET
-    headers:
-      Metadata-Flavor: Google
-    timeout: 2
-    return_content: false
-  register: uip_gcp_metadata
-  changed_when: false
+- name: Read local DMI chassis asset tag
+  ansible.builtin.slurp:
+    src: /sys/class/dmi/id/chassis_asset_tag
+  register: uip_dmi_chassis_asset_tag
   failed_when: false
   when: uip_server_type == "vm"
   tags:
     - uip_snapshot
     - uip_preupgrade
 
-- name: Set VM provider
+- name: Read local cloud-init instance data when available
+  ansible.builtin.slurp:
+    src: /run/cloud-init/instance-data.json
+  register: uip_cloud_init_instance_data
+  failed_when: false
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Build local virtualization fingerprint
+  ansible.builtin.set_fact:
+    uip_vm_fingerprint: >-
+      {{
+        (
+          (uip_detect_virt.stdout | default('')) ~ ' ' ~
+          (uip_dmi_product_name.content | default('') | b64decode | default('')) ~ ' ' ~
+          (uip_dmi_sys_vendor.content | default('') | b64decode | default('')) ~ ' ' ~
+          (uip_dmi_chassis_asset_tag.content | default('') | b64decode | default('')) ~ ' ' ~
+          (uip_cloud_init_instance_data.content | default('') | b64decode | default(''))
+        ) | lower
+      }}
+  when: uip_server_type == "vm"
+  tags:
+    - uip_snapshot
+    - uip_preupgrade
+
+- name: Set VM provider from local VM facts only
   ansible.builtin.set_fact:
     uip_vm_provider: >-
       {{
-        'aws' if uip_aws_metadata.status | default(0) == 200
-        else 'azure' if uip_azure_metadata.status | default(0) == 200
-        else 'gcp' if uip_gcp_metadata.status | default(0) == 200
-        else 'openstack' if uip_detect_virt.stdout == 'openstack'
-        else 'vmware' if uip_detect_virt.stdout == 'vmware'
+        'aws'
+        if 'amazon' in uip_vm_fingerprint
+        or 'ec2' in uip_vm_fingerprint
+        else 'azure'
+        if 'microsoft corporation' in uip_vm_fingerprint
+        or 'azure' in uip_vm_fingerprint
+        else 'gcp'
+        if 'google' in uip_vm_fingerprint
+        or 'google compute engine' in uip_vm_fingerprint
+        else 'openstack'
+        if 'openstack' in uip_vm_fingerprint
+        else 'vmware'
+        if 'vmware' in uip_vm_fingerprint
+        or uip_detect_virt.stdout == 'vmware'
         else uip_detect_virt.stdout | default('unknown')
       }}
   when: uip_server_type == "vm"
@@ -100,6 +120,10 @@
       server_type: "{{ uip_server_type }}"
       vm_provider: "{{ uip_vm_provider | default('none') }}"
       virtualization: "{{ uip_detect_virt.stdout | default('physical') }}"
+      product_name: "{{ uip_dmi_product_name.content | default('') | b64decode | trim }}"
+      sys_vendor: "{{ uip_dmi_sys_vendor.content | default('') | b64decode | trim }}"
+      chassis_asset_tag: "{{ uip_dmi_chassis_asset_tag.content | default('') | b64decode | trim }}"
+      detection_source: "local_vm_facts_only"
       snapshot_id: "{{ uip_snapshot_id | default('none') }}"
       detected_at: "{{ ansible_date_time.iso8601 }}"
   tags:
