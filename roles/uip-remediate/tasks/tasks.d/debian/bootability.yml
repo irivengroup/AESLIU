@@ -1,0 +1,88 @@
+---
+- name: Detect Debian firmware mode
+  ansible.builtin.stat:
+    path: /sys/firmware/efi
+  register: uip_bootability_efi_stat
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Set Debian bootability facts
+  ansible.builtin.set_fact:
+    uip_boot_mode: "{{ 'uefi' if uip_bootability_efi_stat.stat.exists else 'bios' }}"
+    uip_bootability_grub_cfg: "{{ '/boot/efi/EFI/debian/grub.cfg' if uip_bootability_efi_stat.stat.exists else '/boot/grub/grub.cfg' }}"
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Detect Debian running kernel
+  ansible.builtin.command: uname -r
+  register: uip_bootability_running_kernel
+  changed_when: false
+  failed_when: uip_bootability_running_kernel.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Check Debian kernel image exists
+  ansible.builtin.stat:
+    path: "/boot/vmlinuz-{{ uip_bootability_running_kernel.stdout }}"
+  register: uip_bootability_kernel_img
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Check Debian initrd exists
+  ansible.builtin.stat:
+    path: "/boot/initrd.img-{{ uip_bootability_running_kernel.stdout }}"
+  register: uip_bootability_initramfs
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Check Debian GRUB configuration exists
+  ansible.builtin.stat:
+    path: "{{ uip_bootability_grub_cfg }}"
+  register: uip_bootability_grub_cfg_stat
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Assert Debian boot artifacts are bootable
+  ansible.builtin.assert:
+    that:
+      - uip_bootability_kernel_img.stat.exists
+      - uip_bootability_kernel_img.stat.size | int > 0
+      - uip_bootability_initramfs.stat.exists
+      - uip_bootability_initramfs.stat.size | int > 0
+      - uip_bootability_grub_cfg_stat.stat.exists
+      - uip_bootability_grub_cfg_stat.stat.size | int > 0
+    fail_msg: "Debian bootability check failed: kernel, initrd or GRUB config is missing."
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade
+
+- name: Verify Debian running kernel appears in GRUB configuration
+  ansible.builtin.command: "grep -F {{ uip_bootability_running_kernel.stdout }} {{ uip_bootability_grub_cfg }}"
+  register: uip_bootability_kernel_in_grub
+  changed_when: false
+  failed_when: uip_bootability_kernel_in_grub.rc != 0
+  tags:
+    - uip_remediate
+    - uip_remediate_debian
+    - uip_remediate_bootloader
+    - uip_preupgrade

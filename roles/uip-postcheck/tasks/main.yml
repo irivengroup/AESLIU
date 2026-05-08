@@ -68,6 +68,14 @@
     - uip_postcheck
     - uip_postupgrade
 
+- name: Include post-upgrade network cleanup tasks
+  ansible.builtin.import_tasks: tasks.d/network_cleanup.yml
+  when:
+    - uip_network_cleanup_legacy | bool
+  tags:
+    - uip_postcheck
+    - uip_postupgrade
+
 - name: Write done marker
   ansible.builtin.copy:
     dest: '{{ uip_done_file }}'
