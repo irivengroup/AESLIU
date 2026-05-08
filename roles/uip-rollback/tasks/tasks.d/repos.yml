@@ -46,7 +46,18 @@
     - uip_rollback_repos
 
 - name: Refresh package metadata after rollback repo restoration
-  ansible.builtin.command: "{{ 'apt-get update' if uip_os in ['ubuntu', 'debian'] else 'yum makecache' if uip_pkg_mgr == 'yum' else 'dnf makecache' if uip_pkg_mgr == 'dnf' else 'zypper --non-interactive refresh' }}"
+  ansible.builtin.command: "{{ uip_rollback_repo_refresh_cmd }}"
+  vars:
+    uip_rollback_repo_refresh_cmd: >-
+      {{
+        'apt-get update'
+        if uip_os in ['ubuntu', 'debian']
+        else 'yum makecache'
+        if uip_pkg_mgr == 'yum'
+        else 'dnf makecache'
+        if uip_pkg_mgr == 'dnf'
+        else 'zypper --non-interactive refresh'
+      }}
   register: uip_rollback_repo_refresh
   changed_when: false
   failed_when: false
