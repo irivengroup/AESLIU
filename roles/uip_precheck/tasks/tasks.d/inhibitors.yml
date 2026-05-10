@@ -32,7 +32,18 @@
 
 - name: Add generic boot blockers
   ansible.builtin.set_fact:
-    uip_inhibitors: "{{ uip_inhibitors + [item | combine({'severity': item.severity | default('BLOCKER'), 'status': item.status | default('open'), 'category': item.category | default('boot')})] }}"
+    uip_precheck_inhibitor_item:
+      severity: "{{ item.severity | default('BLOCKER') }}"
+      status: "{{ item.status | default('open') }}"
+      category: "{{ item.category | default('boot') }}"
+    uip_inhibitors: >-
+      {{
+        uip_inhibitors
+        + [
+            item
+            | combine(uip_precheck_inhibitor_item)
+          ]
+      }}
   loop: "{{ uip_boot_inhibitors | default([]) }}"
   when:
     - item.severity | default('BLOCKER') == 'BLOCKER'
@@ -43,7 +54,18 @@
 
 - name: Add generic repository blockers
   ansible.builtin.set_fact:
-    uip_inhibitors: "{{ uip_inhibitors + [item | combine({'severity': item.severity | default('BLOCKER'), 'status': item.status | default('open'), 'category': item.category | default('repository')})] }}"
+    uip_precheck_inhibitor_item:
+      severity: "{{ item.severity | default('BLOCKER') }}"
+      status: "{{ item.status | default('open') }}"
+      category: "{{ item.category | default('repository') }}"
+    uip_inhibitors: >-
+      {{
+        uip_inhibitors
+        + [
+            item
+            | combine(uip_precheck_inhibitor_item)
+          ]
+      }}
   loop: "{{ uip_repo_inhibitors | default([]) }}"
   when:
     - item.severity | default('BLOCKER') == 'BLOCKER'
@@ -54,7 +76,18 @@
 
 - name: Add generic network blockers
   ansible.builtin.set_fact:
-    uip_inhibitors: "{{ uip_inhibitors + [item | combine({'severity': item.severity | default('BLOCKER'), 'status': item.status | default('open'), 'category': item.category | default('network')})] }}"
+    uip_precheck_inhibitor_item:
+      severity: "{{ item.severity | default('BLOCKER') }}"
+      status: "{{ item.status | default('open') }}"
+      category: "{{ item.category | default('network') }}"
+    uip_inhibitors: >-
+      {{
+        uip_inhibitors
+        + [
+            item
+            | combine(uip_precheck_inhibitor_item)
+          ]
+      }}
   loop: "{{ uip_network_inhibitors | default([]) }}"
   when:
     - item.severity | default('BLOCKER') == 'BLOCKER'

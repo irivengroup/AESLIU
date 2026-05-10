@@ -1,16 +1,13 @@
----
 profile: production
-
 exclude_paths:
-  - .cache/
-  - .github/
-  - .venv/
-
+- .cache/
+- .github/
+- .venv/
 skip_list:
-  - name[template]
-  - command-instead-of-module
-  - package-latest
-
+- name[template]
+- command-instead-of-module
+- package-latest
+- var-naming[no-role-prefix]
 warn_list:
-  - experimental
-  - fqcn[action-core]
+- experimental
+- fqcn[action-core]
