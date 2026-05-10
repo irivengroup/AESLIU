@@ -5,36 +5,36 @@
   gather_facts: true
   serial: '{{ uip_serial }}'
   roles:
-    - role: uipCommon
+    - role: uip_common
       tags:
         - always
         - uip_common
         - uip_preupgrade
-    - role: uipDiscovery
+    - role: uip_discovery
       tags:
         - uip_discovery
         - uip_preupgrade
-    - role: uipSnapshot
+    - role: uip_snapshot
       tags:
         - uip_snapshot
         - uip_preupgrade
-    - role: uipPrecheck
+    - role: uip_precheck
       tags:
         - uip_precheck
         - uip_preupgrade
-    - role: uipRemediate
+    - role: uip_remediate
       tags:
         - uip_remediate
         - uip_preupgrade
-    - role: uipUpgrade
+    - role: uip_upgrade
       tags:
         - uip_upgrade
         - uip_postupgrade
-    - role: uipPostcheck
+    - role: uip_postcheck
       tags:
         - uip_postcheck
         - uip_postupgrade
-    - role: uipReport
+    - role: uip_report
       tags:
         - always
         - uip_report

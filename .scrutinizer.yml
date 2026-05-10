@@ -12,7 +12,7 @@ build:
       - yamllint .
       - ansible-lint playbooks/*.yml roles
       - ansible-playbook --syntax-check playbooks/uip.yml
-      - ansible-playbook --syntax-check playbooks/uipRollback.yml
+      - ansible-playbook --syntax-check playbooks/uip_rollback.yml
 checks:
   python: true
 filter:

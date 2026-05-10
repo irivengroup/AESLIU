@@ -75,7 +75,7 @@ jobs:
       matrix:
         playbook:
           - playbooks/uip.yml
-          - playbooks/uipRollback.yml
+          - playbooks/uip_rollback.yml
 
     steps:
       - name: Checkout repository
@@ -129,7 +129,7 @@ jobs:
       - name: Validate mandatory roles
         run: |
           set -euo pipefail
-          for role in             uipCommon             uipLock             uipDiscovery             uipRepos             uipSnapshot             uipPrecheck             uipUpdate             uipRemediate             uipUpgrade             uipReboot             uipPostcheck             uipReport             uipRollback
+          for role in             uip_common             uip_lock             uip_discovery             uip_repos             uip_snapshot             uip_precheck             uip_update             uip_remediate             uip_upgrade             uip_reboot             uip_postcheck             uip_report             uip_rollback
           do
             test -d "roles/${role}" || {
               echo "Missing role: ${role}"
@@ -156,22 +156,22 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d group_vars ]; then
-            echo "group_vars is forbidden. Use roles/uipCommon instead."
+            echo "group_vars is forbidden. Use roles/uip_common instead."
             exit 1
           fi
 
       - name: Validate mappings are centralized
         run: |
           set -euo pipefail
-          test -f roles/uipCommon/vars/main.yml
-          grep -q "^uip_paths:" roles/uipCommon/vars/main.yml
-          grep -q "^uip_repo_map:" roles/uipCommon/vars/main.yml
+          test -f roles/uip_common/vars/main.yml
+          grep -q "^uip_paths:" roles/uip_common/vars/main.yml
+          grep -q "^uip_repo_map:" roles/uip_common/vars/main.yml
 
       - name: Validate VM provider credentials template
         run: |
           set -euo pipefail
-          test -f roles/uipCommon/vars/vmproviders.yml
-          grep -q "^uip_vmproviders:" roles/uipCommon/vars/vmproviders.yml
+          test -f roles/uip_common/vars/vmproviders.yml
+          grep -q "^uip_vmproviders:" roles/uip_common/vars/vmproviders.yml
 
   package:
     name: Package artifact
