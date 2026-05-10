@@ -1,7 +1,7 @@
 ---
 uip_mode: enforce
 uip_resume: false
-uip_serial: 1
+uip_serial: 30
 uip_lock_dir: /var/lib/uip
 uip_lock_file: /var/lib/uip/upgrade.lock
 uip_done_file: /var/lib/uip/upgrade.done

@@ -1,0 +1,12 @@
+---
+- name: Linux UIP rollback execution
+  hosts: all
+  become: true
+  gather_facts: true
+  serial: "{{ uip_serial | default(30) }}"
+
+  vars:
+    uip_mode: rollback
+
+  roles:
+    - role: uip_rollback
