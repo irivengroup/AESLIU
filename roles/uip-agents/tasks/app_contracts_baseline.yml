@@ -3,6 +3,7 @@
   ansible.builtin.set_fact:
     uip_app_contracts_effective: "{{ uip_app_contracts | default([]) }}"
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -16,6 +17,7 @@
   loop: "{{ uip_app_contracts_effective }}"
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -29,6 +31,7 @@
     - uip_app_contracts_enabled | bool
     - item.service is defined
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -45,6 +48,7 @@
     - uip_app_contracts_enabled | bool
     - item.port is defined
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -58,6 +62,7 @@
     - uip_app_contracts_enabled | bool
     - item.command is defined
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -71,6 +76,7 @@
     - uip_app_contracts_enabled | bool
     - item.path is defined
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -88,6 +94,7 @@
     - uip_app_contracts_enabled | bool
     - item.url is defined
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade
 
@@ -115,5 +122,6 @@
       {{ uip_app_contracts_http_baseline.results | default([]) | to_nice_yaml(indent=2) | indent(4, true) }}
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_precheck
     - uip_preupgrade

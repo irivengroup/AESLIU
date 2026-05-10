@@ -4,7 +4,12 @@
 
 # Application Dependency Contracts
 
-Application Dependency Contracts validate that business services are operational, not only that the OS booted successfully.
+Application Dependency Contracts are implemented in the dedicated `uip-agents` role.
+
+The role is called by:
+
+- `uip-precheck` with `uip_agents_phase: baseline`
+- `uip-postcheck` with `uip_agents_phase: postcheck`
 
 Contracts are declared in:
 
@@ -21,15 +26,6 @@ roles/uip-common/vars/services.yml
 | `command` | Validate a custom command returns rc=0 |
 | `mount` | Validate a mountpoint exists |
 | `http` | Validate an HTTP health endpoint |
-
-## Failure policy
-
-```yaml
-uip_app_contracts_fail_on_precheck: false
-uip_app_contracts_fail_on_postcheck: true
-```
-
-Postcheck failures are blocking by default because the server should not be considered production-ready if declared business services are not healthy.
 
 ---
 

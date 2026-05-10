@@ -36,8 +36,11 @@
     - uip_precheck
     - uip_preupgrade
 
-- name: Include application dependency contract baseline tasks
-  ansible.builtin.import_tasks: tasks.d/app_contracts.yml
+- name: Call uip-agents for application contract baseline
+  ansible.builtin.include_role:
+    name: uip-agents
+  vars:
+    uip_agents_phase: baseline
   tags:
     - uip_precheck
     - uip_preupgrade

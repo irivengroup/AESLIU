@@ -3,6 +3,7 @@
   ansible.builtin.set_fact:
     uip_app_contracts_effective: "{{ uip_app_contracts | default([]) }}"
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -19,6 +20,7 @@
     - uip_app_contracts_enabled | bool
     - item.service is defined
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -38,6 +40,7 @@
     - uip_app_contracts_enabled | bool
     - item.port is defined
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -54,6 +57,7 @@
     - uip_app_contracts_enabled | bool
     - item.command is defined
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -70,6 +74,7 @@
     - uip_app_contracts_enabled | bool
     - item.path is defined
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -90,6 +95,7 @@
     - uip_app_contracts_enabled | bool
     - item.url is defined
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -107,6 +113,7 @@
       }}
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -119,6 +126,7 @@
       status: "{{ 'ok' if (uip_app_contracts_failed_count | int) == 0 else 'ko' }}"
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -135,6 +143,7 @@
       {{ uip_app_contracts_effective | to_nice_yaml(indent=2) | indent(2, true) }}
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -147,6 +156,7 @@
     content: "{{ uip_app_contracts_score | default({}) | to_nice_yaml }}"
   when: uip_app_contracts_enabled | bool
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade
 
@@ -161,5 +171,6 @@
     - uip_app_contracts_fail_on_postcheck | bool
     - (uip_app_contracts_failed_count | int) > 0
   tags:
+    - uip_agents
     - uip_postcheck
     - uip_postupgrade

@@ -1,0 +1,16 @@
+---
+- name: Include application contract baseline tasks
+  ansible.builtin.import_tasks: app_contracts_baseline.yml
+  when: uip_agents_phase | default('baseline') == 'baseline'
+  tags:
+    - uip_agents
+    - uip_precheck
+    - uip_preupgrade
+
+- name: Include application contract postcheck tasks
+  ansible.builtin.import_tasks: app_contracts_postcheck.yml
+  when: uip_agents_phase | default('baseline') == 'postcheck'
+  tags:
+    - uip_agents
+    - uip_postcheck
+    - uip_postupgrade
